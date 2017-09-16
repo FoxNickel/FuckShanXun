@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button mBtGetPass;
     private TextView mTvPass;
+    private TextView mTvTime;
     private static final int REQUEST_PERMISSIONS = 1;
     private final String TAG = getClass().getSimpleName();
     private SmsReceiver mSmsReceiver;
@@ -36,14 +37,16 @@ public class MainActivity extends AppCompatActivity {
 
         mBtGetPass = (Button) findViewById(R.id.bt_get_pass);
         mTvPass = (TextView) findViewById(R.id.tv_pass);
+        mTvTime = (TextView) findViewById(R.id.tv_time);
 
         SharedPreferences sharedPreferences = getSharedPreferences("shared_preferences_pass",MODE_PRIVATE);
         mTvPass.setText(sharedPreferences.getString("pass"," "));
+        mTvTime.setText(sharedPreferences.getString("time"," "));
 
         IntentFilter receiveFilter = new IntentFilter();
         receiveFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
         receiveFilter.setPriority(1000);
-        mSmsReceiver = new SmsReceiver(mTvPass);
+        mSmsReceiver = new SmsReceiver(mTvPass,mTvTime);
         registerReceiver(mSmsReceiver, receiveFilter);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

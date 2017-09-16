@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">FuckShanXun</string>
+    <string name="fuck_shanxun">Fuck ShanXun</string>
+    <string name="one_key">一键 优雅</string>
+    <string name="get_pass">获取闪讯密码</string>
+    <string name="version">版本：1.0</string>
+    <string name="declare">声明：本软件仅供学习、科研使用，严禁用于违法行为，使用此软件造成的一切后果用户自行承担！</string>
+    <string name="one_key_get_pass">一键获取密码</string>
+    <string name="pass">您的闪讯密码是：</string>
 </resources>
