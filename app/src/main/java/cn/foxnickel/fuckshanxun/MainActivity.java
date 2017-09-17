@@ -2,12 +2,17 @@ package cn.foxnickel.fuckshanxun;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.SmsManager;
 import android.util.Log;
@@ -37,9 +42,9 @@ public class MainActivity extends AppCompatActivity {
         TextView tvPass = (TextView) findViewById(R.id.tv_pass);
         TextView tvTime = (TextView) findViewById(R.id.tv_time);
 
-        SharedPreferences sharedPreferences = getSharedPreferences("shared_preferences_pass",MODE_PRIVATE);
-        tvPass.setText(sharedPreferences.getString("pass"," "));
-        tvTime.setText(sharedPreferences.getString("time"," "));
+        SharedPreferences sharedPreferences = getSharedPreferences("shared_preferences_pass", MODE_PRIVATE);
+        tvPass.setText(sharedPreferences.getString("pass", " "));
+        tvTime.setText(sharedPreferences.getString("time", " "));
 
         IntentFilter receiveFilter = new IntentFilter();
         receiveFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
@@ -51,11 +56,38 @@ public class MainActivity extends AppCompatActivity {
             if (checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                 sendSMS();
             } else {
+                if ("Xiaomi".equals(Build.MANUFACTURER)) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("提示");
+                    builder.setCancelable(false);
+                    builder.setMessage("        检测到您的系统是MIUI系统，需要手动开启接收和发送短信的权限,否则将有可能无法使用。\n\n" +
+                            "点击确定按钮将跳转到权限控制页面。");
+                    builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            getAppDetailSettingIntent(MainActivity.this);
+                        }
+                    });
+                    builder.show();
+                }
                 requestPermission(Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE);
             }
         } else {
             sendSMS();
         }
+    }
+
+    /**
+     * 打开应用权限管理页面
+     *
+     * @param context
+     */
+    private void getAppDetailSettingIntent(Context context) {
+        Intent localIntent = new Intent();
+        localIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        localIntent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
+        localIntent.setData(Uri.fromParts("package", getPackageName(), null));
+        startActivity(localIntent);
     }
 
     @TargetApi(Build.VERSION_CODES.M)
