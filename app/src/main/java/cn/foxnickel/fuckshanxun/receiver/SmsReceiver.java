@@ -14,8 +14,8 @@ import android.widget.Toast;
 public class SmsReceiver extends BroadcastReceiver {
 
     private final String TAG = getClass().getSimpleName();
-    private TextView mTvPass;
-    private TextView mTvTime;
+    private final TextView mTvPass;
+    private final TextView mTvTime;
 
     public SmsReceiver(TextView tvPass, TextView tvTime) {
         mTvPass = tvPass;
@@ -27,11 +27,11 @@ public class SmsReceiver extends BroadcastReceiver {
 
         Bundle bundle = intent.getExtras();
         Object[] pdus = (Object[]) bundle.get("pdus");
-        SmsMessage[] messages = new SmsMessage[pdus.length];
+        SmsMessage[] messages = new SmsMessage[pdus != null ? pdus.length : 0];
         for (int i = 0; i < messages.length; i++) {
             messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
         }
-        String address = messages[0].getOriginatingAddress();
+
         StringBuilder content = new StringBuilder();
         for (SmsMessage message : messages) {
             content.append(message.getMessageBody());
