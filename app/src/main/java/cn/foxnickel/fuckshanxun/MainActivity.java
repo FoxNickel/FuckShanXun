@@ -37,24 +37,29 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         mBtGetPass = (Button) findViewById(R.id.bt_get_pass);
         TextView tvPass = (TextView) findViewById(R.id.tv_pass);
         TextView tvTime = (TextView) findViewById(R.id.tv_time);
 
+        /*获取存储的上次获取的数据*/
         SharedPreferences sharedPreferences = getSharedPreferences("shared_preferences_pass", MODE_PRIVATE);
         tvPass.setText(sharedPreferences.getString("pass", " "));
         tvTime.setText(sharedPreferences.getString("time", " "));
 
+        /*打开app时注册短信监听器*/
         IntentFilter receiveFilter = new IntentFilter();
         receiveFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
         receiveFilter.setPriority(1000);
         mSmsReceiver = new SmsReceiver(tvPass, tvTime);
         registerReceiver(mSmsReceiver, receiveFilter);
 
+        /*运行时权限处理*/
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                 sendSMS();
             } else {
+                /*小米手机手动开启权限指引*/
                 if ("Xiaomi".equals(Build.MANUFACTURER)) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setTitle("提示");
@@ -77,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 打开应用权限管理页面
+     * 打开应用权限管理页面（小米手机会用到）
      */
     private void getAppDetailSettingIntent() {
         Intent localIntent = new Intent();
@@ -87,6 +92,10 @@ public class MainActivity extends AppCompatActivity {
         startActivity(localIntent);
     }
 
+    /**
+     * 请求权限函数
+     * @param permissions 要请求的权限
+     */
     @TargetApi(Build.VERSION_CODES.M)
     private void requestPermission(String... permissions) {
         List<String> permissionList = new ArrayList<>();//要申请的权限列表
@@ -119,6 +128,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * 发送获取密码的短信
+     */
     private void sendSMS() {
         mBtGetPass.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -133,6 +145,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(mSmsReceiver);
+        unregisterReceiver(mSmsReceiver);//取消注册的广播监听器
     }
 }

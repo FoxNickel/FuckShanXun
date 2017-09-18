@@ -25,6 +25,9 @@ public class SmsReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
+        /**
+         * 获取短信内容
+         */
         Bundle bundle = intent.getExtras();
         Object[] pdus = (Object[]) bundle.get("pdus");
         SmsMessage[] messages = new SmsMessage[pdus != null ? pdus.length : 0];
@@ -37,6 +40,10 @@ public class SmsReceiver extends BroadcastReceiver {
             content.append(message.getMessageBody());
         }
 
+
+        /**
+         * 将短信内容显示到界面
+         */
         if (!TextUtils.isEmpty(content)) {
 
             Log.i(TAG, content.toString());
