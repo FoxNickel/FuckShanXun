@@ -2,7 +2,6 @@ package cn.foxnickel.fuckshanxun;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -65,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
                     builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            getAppDetailSettingIntent(MainActivity.this);
+                            getAppDetailSettingIntent();
                         }
                     });
                     builder.show();
@@ -79,10 +78,8 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 打开应用权限管理页面
-     *
-     * @param context
      */
-    private void getAppDetailSettingIntent(Context context) {
+    private void getAppDetailSettingIntent() {
         Intent localIntent = new Intent();
         localIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         localIntent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
