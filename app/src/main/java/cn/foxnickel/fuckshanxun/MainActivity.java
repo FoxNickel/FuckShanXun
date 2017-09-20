@@ -14,12 +14,15 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.SmsManager;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,11 +71,7 @@ public class MainActivity extends AppCompatActivity {
         /*运行时权限处理*/
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                if (sharedPreferences.getInt("card", 0) == 0) {
-                    sendSMS();
-                } else {
-                    sendSMS2();
-                }
+                sendSMS();
             } else {
                 /*小米手机手动开启权限指引*/
                 if ("Xiaomi".equals(Build.MANUFACTURER)) {
@@ -92,11 +91,7 @@ public class MainActivity extends AppCompatActivity {
                 requestPermission(Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE);
             }
         } else {
-            if (sharedPreferences.getInt("card", 0) == 0) {
-                sendSMS();
-            } else {
-                sendSMS2();
-            }
+            sendSMS();
         }
     }
 
@@ -142,44 +137,62 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            if (sharedPreferences.getInt("card", 0) == 0) {
-                sendSMS();
-            } else {
-                sendSMS2();
-            }
+            Log.i(TAG, "onRequestPermissionsResult: card: " + sharedPreferences.getInt("card", 0));
+            sendSMS();
         } else {
             Toast.makeText(this, "请授予软件发送短信的权限，否则将无法使用", Toast.LENGTH_LONG).show();
         }
     }
 
     /**
-     * 卡一发送获取密码的短信
+     * 发送获取密码的短信
      */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
     private void sendSMS() {
         mBtGetPass.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
-                SmsManager smsManager = SmsManager.getDefault();
-                smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
+                if (sharedPreferences.getInt("card", 0) == 0) {
+                    Log.i(TAG, "onClick: card1");
+                    Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
+                    SmsManager smsManager = SmsManager.getDefault();
+                    smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
+                } else {
+                    Log.i(TAG, "onClick: card2");
+                    TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+                    Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
+                    Class<?> telephonyClass = telephonyManager.getClass();
+                    try {
+                        Method method = telephonyClass.getMethod("getSubscriberId", int.class);
+                        String subIds[] = new String[10];
+                        int sim2Id = 0;
+                        for (int i = 0; i < 10; i++) {
+                            String subId = (String) method.invoke(telephonyManager, i);
+                            subIds[i] = subId;
+                        }
+                        if (!subIds[0].equals(subIds[1]) && !subIds[0].equals(subIds[3])) {
+                            sim2Id = 0;
+                        } else {
+                            for (int i = 1; i < 10; i++) {
+                                if (!subIds[i].equals(subIds[0])) {
+                                    sim2Id = i;
+                                }
+                            }
+                        }
+                        Log.i(TAG, "sendSMS2: sim2Id: " + sim2Id);
+
+                        SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(sim2Id);
+                        smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
+
+                    } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+
             }
         });
     }
 
-    /**
-     * 卡二发送获取密码的短信
-     */
-    private void sendSMS2() {
-        mBtGetPass.setOnClickListener(new View.OnClickListener() {
-            @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
-                SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(2);
-                smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
-            }
-        });
-    }
 
     @Override
     protected void onDestroy() {
