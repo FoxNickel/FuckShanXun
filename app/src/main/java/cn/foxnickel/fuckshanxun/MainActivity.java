@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mBtGetPass;
     private static final int REQUEST_PERMISSIONS = 1;
     private final String TAG = getClass().getSimpleName();
+    private SharedPreferences sharedPreferences;
     private SmsReceiver mSmsReceiver;
 
     @Override
@@ -37,13 +38,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        sharedPreferences = getSharedPreferences("shared_preferences_pass", MODE_PRIVATE);
 
         mBtGetPass = (Button) findViewById(R.id.bt_get_pass);
         TextView tvPass = (TextView) findViewById(R.id.tv_pass);
         TextView tvTime = (TextView) findViewById(R.id.tv_time);
+        TextView tvVersion = (TextView) findViewById(R.id.tv_version);
+
+        /*设置界面显示的版本号*/
+        try {
+            String version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+            String versionInfo = "版本：" + version;
+            tvVersion.setText(versionInfo);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
 
         /*获取存储的上次获取的数据*/
-        SharedPreferences sharedPreferences = getSharedPreferences("shared_preferences_pass", MODE_PRIVATE);
         tvPass.setText(sharedPreferences.getString("pass", " "));
         tvTime.setText(sharedPreferences.getString("time", " "));
 
@@ -57,7 +68,11 @@ public class MainActivity extends AppCompatActivity {
         /*运行时权限处理*/
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                sendSMS();
+                if (sharedPreferences.getInt("card", 0) == 0) {
+                    sendSMS();
+                } else {
+                    sendSMS2();
+                }
             } else {
                 /*小米手机手动开启权限指引*/
                 if ("Xiaomi".equals(Build.MANUFACTURER)) {
@@ -77,7 +92,11 @@ public class MainActivity extends AppCompatActivity {
                 requestPermission(Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE);
             }
         } else {
-            sendSMS();
+            if (sharedPreferences.getInt("card", 0) == 0) {
+                sendSMS();
+            } else {
+                sendSMS2();
+            }
         }
     }
 
@@ -94,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 请求权限函数
+     *
      * @param permissions 要请求的权限
      */
     @TargetApi(Build.VERSION_CODES.M)
@@ -122,14 +142,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            sendSMS();
+            if (sharedPreferences.getInt("card", 0) == 0) {
+                sendSMS();
+            } else {
+                sendSMS2();
+            }
         } else {
             Toast.makeText(this, "请授予软件发送短信的权限，否则将无法使用", Toast.LENGTH_LONG).show();
         }
     }
 
     /**
-     * 发送获取密码的短信
+     * 卡一发送获取密码的短信
      */
     private void sendSMS() {
         mBtGetPass.setOnClickListener(new View.OnClickListener() {
@@ -137,7 +161,22 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
                 SmsManager smsManager = SmsManager.getDefault();
-                smsManager.sendTextMessage("106593005", null, "mm", null, null);
+                smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
+            }
+        });
+    }
+
+    /**
+     * 卡二发送获取密码的短信
+     */
+    private void sendSMS2() {
+        mBtGetPass.setOnClickListener(new View.OnClickListener() {
+            @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
+                SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(2);
+                smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
             }
         });
     }
@@ -146,5 +185,26 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(mSmsReceiver);//取消注册的广播监听器
+    }
+
+    public void setSimCard(View view) {
+        final String[] cards = new String[]{"SIM1", "SIM2"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("双卡设置")
+                .setSingleChoiceItems(cards, sharedPreferences.getInt("card", 0), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putInt("card", which);
+                        editor.apply();
+                    }
+                });
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(MainActivity.this, "已保存", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.show();
     }
 }
