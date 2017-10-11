@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         /*运行时权限处理*/
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+            if (checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                 sendSMS();
             } else {
                 /*小米手机手动开启权限指引*/
@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
                             String subId = (String) method.invoke(telephonyManager, i);
                             subIds[i] = subId;
                         }
-                        if (!subIds[0].equals(subIds[1]) && !subIds[0].equals(subIds[3])) {
+                        if (!subIds[0].equals(subIds[1]) && !subIds[0].equals(subIds[2])) {
                             sim2Id = 0;
                         } else {
                             for (int i = 1; i < 10; i++) {
