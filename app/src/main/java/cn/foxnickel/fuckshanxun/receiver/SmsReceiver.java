@@ -29,10 +29,15 @@ public class SmsReceiver extends BroadcastReceiver {
          * 获取短信内容
          */
         Bundle bundle = intent.getExtras();
-        Object[] pdus = (Object[]) bundle.get("pdus");
+        Object[] pdus = new Object[0];
+        if (bundle != null) {
+            pdus = (Object[]) bundle.get("pdus");
+        }
         SmsMessage[] messages = new SmsMessage[pdus != null ? pdus.length : 0];
         for (int i = 0; i < messages.length; i++) {
-            messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+            if (pdus != null) {
+                messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+            }
         }
 
         StringBuilder content = new StringBuilder();

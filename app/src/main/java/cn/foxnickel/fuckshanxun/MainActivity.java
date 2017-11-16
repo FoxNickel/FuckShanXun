@@ -161,31 +161,34 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, "onClick: card2");
                     TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
                     Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
-                    Class<?> telephonyClass = telephonyManager.getClass();
-                    try {
-                        Method method = telephonyClass.getMethod("getSubscriberId", int.class);
-                        String subIds[] = new String[10];
-                        int sim2Id = 0;
-                        for (int i = 0; i < 10; i++) {
-                            String subId = (String) method.invoke(telephonyManager, i);
-                            subIds[i] = subId;
-                        }
-                        if (!subIds[0].equals(subIds[1]) && !subIds[0].equals(subIds[2])) {
-                            sim2Id = 0;
-                        } else {
-                            for (int i = 1; i < 10; i++) {
-                                if (!subIds[i].equals(subIds[0])) {
-                                    sim2Id = i;
+                    Class<?> telephonyClass;
+                    if (telephonyManager != null) {
+                        telephonyClass = telephonyManager.getClass();
+                        try {
+                            Method method = telephonyClass.getMethod("getSubscriberId", int.class);
+                            String subIds[] = new String[10];
+                            int sim2Id = 0;
+                            for (int i = 0; i < 10; i++) {
+                                String subId = (String) method.invoke(telephonyManager, i);
+                                subIds[i] = subId;
+                            }
+                            if (!subIds[0].equals(subIds[1]) && !subIds[0].equals(subIds[2])) {
+                                sim2Id = 0;
+                            } else {
+                                for (int i = 1; i < 10; i++) {
+                                    if (!subIds[i].equals(subIds[0])) {
+                                        sim2Id = i;
+                                    }
                                 }
                             }
+                            Log.i(TAG, "sendSMS2: sim2Id: " + sim2Id);
+
+                            SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(sim2Id);
+                            smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
+
+                        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                            e.printStackTrace();
                         }
-                        Log.i(TAG, "sendSMS2: sim2Id: " + sim2Id);
-
-                        SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(sim2Id);
-                        smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
-
-                    } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                        e.printStackTrace();
                     }
                 }
 
