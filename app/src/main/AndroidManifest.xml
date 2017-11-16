@@ -12,8 +12,7 @@
         android:icon="@mipmap/crab"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/crab"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:supportsRtl="true">
         <activity android:name=".MainActivity"
             android:screenOrientation="portrait">
             <intent-filter>

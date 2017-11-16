@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#2183C7</color>
-    <color name="colorPrimaryDark">#1E79B7</color>
-    <color name="colorAccent">#FF4081</color>
     <color name="passColor">#FEB800</color>
 </resources>
