@@ -30,16 +30,16 @@ import cn.foxnickel.fuckshanxun.receiver.SmsReceiver;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button mBtGetPass;
     private static final int REQUEST_PERMISSIONS = 1;
     private final String TAG = getClass().getSimpleName();
+    private Button mBtGetPass;
     private SharedPreferences sharedPreferences;
     private SmsReceiver mSmsReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_second);
 
         sharedPreferences = getSharedPreferences("shared_preferences_pass", MODE_PRIVATE);
 
