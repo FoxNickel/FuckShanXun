@@ -11,6 +11,9 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+/**
+ * @author NickelFox
+ */
 public class SmsReceiver extends BroadcastReceiver {
 
     private final String TAG = getClass().getSimpleName();

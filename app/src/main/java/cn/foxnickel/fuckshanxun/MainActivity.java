@@ -28,6 +28,9 @@ import java.util.List;
 
 import cn.foxnickel.fuckshanxun.receiver.SmsReceiver;
 
+/**
+ * @author NickelFox
+ */
 public class MainActivity extends Activity {
 
     private static final int REQUEST_PERMISSIONS = 1;
@@ -135,6 +138,8 @@ public class MainActivity extends Activity {
                     Log.i(TAG, "onCreate: Denied...");
                     permissionList.add(permission);
                     break;
+                default:
+                    break;
             }
         }
         //申请未拥有的权限
@@ -156,55 +161,105 @@ public class MainActivity extends Activity {
     /**
      * 发送获取密码的短信
      */
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
     private void sendSMS() {
         mBtGetPass.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (sharedPreferences.getInt("card", 0) == 0) {
-                    Log.i(TAG, "onClick: card1");
-                    Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
-                    SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(1);
-                    smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
+                Log.i(TAG, "onClick: manufacture " + Build.MANUFACTURER);
+                if ("HUAWEI".equals(Build.MANUFACTURER)) {
+                    choiceCardToSendHuaWei();
                 } else {
-                    Log.i(TAG, "onClick: card2");
-                    TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-                    Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
-                    Class<?> telephonyClass;
-                    if (telephonyManager != null) {
-                        telephonyClass = telephonyManager.getClass();
-                        try {
-                            Method method = telephonyClass.getMethod("getSubscriberId", int.class);
-                            String subIds[] = new String[10];
-                            int sim2Id = 0;
-                            for (int i = 0; i < 10; i++) {
-                                String subId = (String) method.invoke(telephonyManager, i);
-                                subIds[i] = subId;
-                            }
-                            if (!subIds[0].equals(subIds[1]) && !subIds[0].equals(subIds[2])) {
-                                sim2Id = 0;
-                            } else {
-                                for (int i = 1; i < 10; i++) {
-                                    if (!subIds[i].equals(subIds[0])) {
-                                        sim2Id = i;
-                                    }
-                                }
-                            }
-                            Log.i(TAG, "sendSMS2: sim2Id: " + sim2Id);
-
-                            SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(sim2Id);
-                            smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
-
-                        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    choiceCardToSend();
                 }
-
             }
         });
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
+    private void choiceCardToSend() {
+        if (sharedPreferences.getInt("card", 0) == 0) {
+            Log.i(TAG, "onClick: card1");
+            Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
+            SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(1);
+            smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
+        } else {
+            Log.i(TAG, "onClick: card2");
+            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+            Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
+            Class<?> telephonyClass;
+            if (telephonyManager != null) {
+                telephonyClass = telephonyManager.getClass();
+                try {
+                    Method method = telephonyClass.getMethod("getSubscriberId", int.class);
+                    String[] subIds = new String[10];
+                    int sim2Id = 0;
+                    for (int i = 0; i < 10; i++) {
+                        String subId = (String) method.invoke(telephonyManager, i);
+                        subIds[i] = subId;
+                    }
+                    if (!subIds[0].equals(subIds[1]) && !subIds[0].equals(subIds[2])) {
+                        sim2Id = 0;
+                    } else {
+                        for (int i = 1; i < 10; i++) {
+                            if (!subIds[i].equals(subIds[0])) {
+                                sim2Id = i;
+                            }
+                        }
+                    }
+                    Log.i(TAG, "sendSMS2: sim2Id: " + sim2Id);
+
+                    SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(sim2Id);
+                    smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
+
+                } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
+    private void choiceCardToSendHuaWei() {
+        if (sharedPreferences.getInt("card", 0) == 0) {
+            Log.i(TAG, "onClick: card1");
+            Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
+            SmsManager smsManager = SmsManager.getDefault();
+            smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
+        } else {
+            Log.i(TAG, "onClick: card2");
+            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+            Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
+            Class<?> telephonyClass;
+            if (telephonyManager != null) {
+                telephonyClass = telephonyManager.getClass();
+                try {
+                    Method method = telephonyClass.getMethod("getSubscriberId", int.class);
+                    String[] subIds = new String[10];
+                    int sim2Id = 0;
+                    for (int i = 0; i < 10; i++) {
+                        String subId = (String) method.invoke(telephonyManager, i);
+                        subIds[i] = subId;
+                    }
+                    if (!subIds[0].equals(subIds[1]) && !subIds[0].equals(subIds[2])) {
+                        sim2Id = 0;
+                    } else {
+                        for (int i = 1; i < 10; i++) {
+                            if (!subIds[i].equals(subIds[0])) {
+                                sim2Id = i;
+                            }
+                        }
+                    }
+                    Log.i(TAG, "sendSMS2: sim2Id: " + sim2Id);
+
+                    SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(sim2Id);
+                    smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
+
+                } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
     @Override
     protected void onDestroy() {
