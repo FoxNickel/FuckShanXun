@@ -165,7 +165,7 @@ public class MainActivity extends Activity {
                     Log.i(TAG, "onClick: card1");
                     Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
                     SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(1);
-                    smsManager.sendTextMessage("+8618100176827", null, "mm", null, null);
+                    smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
                 } else {
                     Log.i(TAG, "onClick: card2");
                     TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
@@ -193,7 +193,7 @@ public class MainActivity extends Activity {
                             Log.i(TAG, "sendSMS2: sim2Id: " + sim2Id);
 
                             SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(sim2Id);
-                            smsManager.sendTextMessage("+8618100176827", null, "mm", null, null);
+                            smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
 
                         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
                             e.printStackTrace();
