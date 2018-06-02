@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -13,7 +14,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.telephony.SmsManager;
-import android.telephony.TelephonyManager;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -21,8 +23,6 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -165,100 +165,37 @@ public class MainActivity extends Activity {
         mBtGetPass.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i(TAG, "onClick: manufacture " + Build.MANUFACTURER);
-                if ("HUAWEI".equals(Build.MANUFACTURER)) {
-                    choiceCardToSendHuaWei();
-                } else {
-                    choiceCardToSend();
-                }
+                choiceCardToSendNew();
             }
         });
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
-    private void choiceCardToSend() {
-        if (sharedPreferences.getInt("card", 0) == 0) {
-            Log.i(TAG, "onClick: card1");
-            Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
-            SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(1);
-            smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
-        } else {
-            Log.i(TAG, "onClick: card2");
-            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-            Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
-            Class<?> telephonyClass;
-            if (telephonyManager != null) {
-                telephonyClass = telephonyManager.getClass();
-                try {
-                    Method method = telephonyClass.getMethod("getSubscriberId", int.class);
-                    String[] subIds = new String[10];
-                    int sim2Id = 0;
-                    for (int i = 0; i < 10; i++) {
-                        String subId = (String) method.invoke(telephonyManager, i);
-                        subIds[i] = subId;
-                    }
-                    if (!subIds[0].equals(subIds[1]) && !subIds[0].equals(subIds[2])) {
-                        sim2Id = 0;
-                    } else {
-                        for (int i = 1; i < 10; i++) {
-                            if (!subIds[i].equals(subIds[0])) {
-                                sim2Id = i;
-                            }
-                        }
-                    }
-                    Log.i(TAG, "sendSMS2: sim2Id: " + sim2Id);
+    private void choiceCardToSendNew() {
+        //获取手机卡的subId
+        SubscriptionManager subscriptionManager = (SubscriptionManager) getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+        List<SubscriptionInfo> list = subscriptionManager.getActiveSubscriptionInfoList();
 
-                    SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(sim2Id);
-                    smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
-
-                } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                    e.printStackTrace();
-                }
+        int subId = 0;
+        if (list != null && list.size() == 2) {
+            //双卡手机
+            if (sharedPreferences.getInt("card", 0) == 0) {
+                //用户选择了卡一
+                subId = list.get(0).getSubscriptionId();
+                Log.i(TAG, "choiceCardToSendNew: double card1 subId " + subId);
+            } else {
+                //用户选择了卡二
+                subId = list.get(1).getSubscriptionId();
+                Log.i(TAG, "choiceCardToSendNew: double card2 subId " + subId);
             }
+        } else if (list != null) {
+            //单卡手机
+            subId = list.get(0).getSubscriptionId();
+            Log.i(TAG, "choiceCardToSendNew: single card subId " + subId);
         }
-    }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
-    private void choiceCardToSendHuaWei() {
-        if (sharedPreferences.getInt("card", 0) == 0) {
-            Log.i(TAG, "onClick: card1");
-            Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
-            SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
-        } else {
-            Log.i(TAG, "onClick: card2");
-            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-            Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
-            Class<?> telephonyClass;
-            if (telephonyManager != null) {
-                telephonyClass = telephonyManager.getClass();
-                try {
-                    Method method = telephonyClass.getMethod("getSubscriberId", int.class);
-                    String[] subIds = new String[10];
-                    int sim2Id = 0;
-                    for (int i = 0; i < 10; i++) {
-                        String subId = (String) method.invoke(telephonyManager, i);
-                        subIds[i] = subId;
-                    }
-                    if (!subIds[0].equals(subIds[1]) && !subIds[0].equals(subIds[2])) {
-                        sim2Id = 0;
-                    } else {
-                        for (int i = 1; i < 10; i++) {
-                            if (!subIds[i].equals(subIds[0])) {
-                                sim2Id = i;
-                            }
-                        }
-                    }
-                    Log.i(TAG, "sendSMS2: sim2Id: " + sim2Id);
-
-                    SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(sim2Id);
-                    smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
-
-                } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(subId);
+        smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
     }
 
     @Override
