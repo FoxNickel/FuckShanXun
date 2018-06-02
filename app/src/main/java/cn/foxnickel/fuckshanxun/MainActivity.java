@@ -172,6 +172,7 @@ public class MainActivity extends Activity {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
     private void choiceCardToSendNew() {
+        Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
         //获取手机卡的subId
         SubscriptionManager subscriptionManager = (SubscriptionManager) getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
         List<SubscriptionInfo> list = subscriptionManager.getActiveSubscriptionInfoList();
