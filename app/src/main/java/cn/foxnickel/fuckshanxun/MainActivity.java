@@ -165,11 +165,28 @@ public class MainActivity extends Activity {
         mBtGetPass.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                choiceCardToSendNew();
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP_MR1) {
+                    // Android5.1以下，不能用双卡判断
+                    choiceCardToSend();
+                } else {
+                    choiceCardToSendNew();
+                }
             }
         });
     }
 
+    /**
+     * 不进行双卡判断，直接默认卡发送
+     */
+    private void choiceCardToSend() {
+        Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
+        SmsManager smsManager = SmsManager.getDefault();
+        smsManager.sendTextMessage("+86106593005", null, "mm", null, null);
+    }
+
+    /**
+     * 双卡判断
+     */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
     private void choiceCardToSendNew() {
         Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
