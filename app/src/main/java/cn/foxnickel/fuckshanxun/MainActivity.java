@@ -4,6 +4,8 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -16,6 +18,7 @@ import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -38,6 +41,27 @@ public class MainActivity extends Activity {
     private Button mBtGetPass;
     private SharedPreferences sharedPreferences;
     private SmsReceiver mSmsReceiver;
+    private TextView mTvPass;
+
+    private View.OnClickListener mPassClickListener = new View.OnClickListener() {
+        @Override public void onClick(View v) {
+            String pass = mTvPass.getText().toString();
+            if (!TextUtils.isEmpty(pass)) {
+                copyPasswordToClipboard(pass);
+            }
+        }
+    };
+
+    private void copyPasswordToClipboard(String password) {
+        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboardManager == null) {
+            return;
+        }
+
+        ClipData clipData = ClipData.newPlainText("", password);
+        clipboardManager.setPrimaryClip(clipData);
+        Toast.makeText(MainActivity.this, getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,10 +73,12 @@ public class MainActivity extends Activity {
 
         sharedPreferences = getSharedPreferences("shared_preferences_pass", MODE_PRIVATE);
 
-        mBtGetPass = (Button) findViewById(R.id.bt_get_pass);
-        TextView tvPass = (TextView) findViewById(R.id.tv_pass);
-        TextView tvTime = (TextView) findViewById(R.id.tv_time);
-        TextView tvVersion = (TextView) findViewById(R.id.tv_version);
+        mBtGetPass = findViewById(R.id.bt_get_pass);
+        mTvPass = findViewById(R.id.tv_pass);
+        TextView tvTime = findViewById(R.id.tv_time);
+        TextView tvVersion = findViewById(R.id.tv_version);
+
+        mTvPass.setOnClickListener(mPassClickListener);
 
         /*设置界面显示的版本号*/
         try {
@@ -64,14 +90,14 @@ public class MainActivity extends Activity {
         }
 
         /*获取存储的上次获取的数据*/
-        tvPass.setText(sharedPreferences.getString("pass", " "));
-        tvTime.setText(sharedPreferences.getString("time", " "));
+        mTvPass.setText(sharedPreferences.getString("pass", ""));
+        tvTime.setText(sharedPreferences.getString("time", ""));
 
         /*打开app时注册短信监听器*/
         IntentFilter receiveFilter = new IntentFilter();
         receiveFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
         receiveFilter.setPriority(1000);
-        mSmsReceiver = new SmsReceiver(tvPass, tvTime);
+        mSmsReceiver = new SmsReceiver(mTvPass, tvTime);
         registerReceiver(mSmsReceiver, receiveFilter);
 
         /*运行时权限处理*/
@@ -126,7 +152,7 @@ public class MainActivity extends Activity {
     @TargetApi(Build.VERSION_CODES.M)
     private void requestPermission(String... permissions) {
         List<String> permissionList = new ArrayList<>();//要申请的权限列表
-        /**
+        /*
          * 判断权限是否已经拥有，若未拥有则添加到List中
          */
         for (String permission : permissions) {
@@ -189,9 +215,13 @@ public class MainActivity extends Activity {
      */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
     private void choiceCardToSendNew() {
-        Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
         //获取手机卡的subId
         SubscriptionManager subscriptionManager = (SubscriptionManager) getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+        if (subscriptionManager == null) {
+            Toast.makeText(MainActivity.this, "暂时无法获取SIM卡信息...", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Toast.makeText(MainActivity.this, "获取密码中...", Toast.LENGTH_SHORT).show();
         List<SubscriptionInfo> list = subscriptionManager.getActiveSubscriptionInfoList();
 
         int subId = 0;
@@ -206,7 +236,7 @@ public class MainActivity extends Activity {
                 subId = list.get(1).getSubscriptionId();
                 Log.i(TAG, "choiceCardToSendNew: double card2 subId " + subId);
             }
-        } else if (list != null) {
+        } else if (list != null && !list.isEmpty()) {
             //单卡手机
             subId = list.get(0).getSubscriptionId();
             Log.i(TAG, "choiceCardToSendNew: single card subId " + subId);

@@ -8,4 +8,5 @@
     <string name="one_key_get_pass">一键获取密码</string>
     <string name="pass">您的闪讯密码是：</string>
     <string name="point">· · ·</string>
+    <string name="copied_to_clipboard">验证码已复制到剪贴板</string>
 </resources>

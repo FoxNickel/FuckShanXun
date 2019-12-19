@@ -140,7 +140,8 @@
             android:layout_marginTop="32dp"
             android:gravity="center"
             android:textColor="@color/passColor"
-            android:textSize="24sp"/>
+            android:textSize="24sp"
+            android:textIsSelectable="true"/>
 
         <TextView
             android:id="@+id/tv_time"
